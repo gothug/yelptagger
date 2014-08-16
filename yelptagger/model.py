@@ -16,13 +16,14 @@ class Model:
         train_data, test_data = util.split_list(self.learn_data_array, 75) # percentage split for train/test data
 
         self.features = self.__get_word_features(train_data)
+        self.bi_features = self.__get_bigram_features(train_data)
 
         train_set = nltk.classify.apply_features(\
-            functools.partial(extract_features_func, self.features),\
-            train_data)
+            functools.partial(extract_features_func, self.features,\
+                self.bi_features), train_data)
         test_set  = nltk.classify.apply_features(\
-            functools.partial(extract_features_func, self.features),\
-            test_data)
+            functools.partial(extract_features_func, self.features,\
+                self.bi_features), test_data)
 
         print "Total set length", len(self.learn_data_array)
         print "Train set length", len(train_set)
@@ -58,9 +59,18 @@ class Model:
 
     def __get_word_features(self, train_data):
         wordlist = nltk.FreqDist(self.__get_words(train_data))
-        features = wordlist.keys()[:3000] # get N most frequent words for feature list
+        features = wordlist.keys()[:1000] # get N most frequent words for feature list
+        return features
+
+    def __get_bigram_features(self, train_data):
+        wordlist = nltk.FreqDist(self.__get_bigrams(train_data))
+        features = wordlist.keys()[:1000] # get N most frequent bigrams for feature list
         return features
 
     def __get_words(self, data):
         return reduce(lambda x, y: x + y,\
             map(lambda e: e[0]['words'], data))
+
+    def __get_bigrams(self, data):
+        return reduce(lambda x, y: x + y,\
+            map(lambda e: e[0]['bigrams'], data))
